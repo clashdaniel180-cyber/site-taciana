@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+
 export async function middleware(req: NextRequest) {
   let res = NextResponse.next({ request: req });
   const supabase = createServerClient(
@@ -18,13 +19,15 @@ export async function middleware(req: NextRequest) {
       },
     },
   );
-  console.log("middleware: antes", req.nextUrl.pathname);
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  console.log("middleware: depois", !!user);
+
   if (!user && req.nextUrl.pathname.startsWith("/admin"))
     return NextResponse.redirect(new URL("/login", req.url));
+
   return res;
 }
+
 export const config = { matcher: ["/admin/:path*", "/login"] };

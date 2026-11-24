@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "./actions";
+
 export default async function AdminLayout({
   children,
 }: {
@@ -12,16 +13,18 @@ export default async function AdminLayout({
     data: { user },
   } = await sb.auth.getUser();
   if (!user) redirect("/login");
-  const { data: me, error } = await sb
+
+  const { data: me } = await sb
     .from("profiles")
     .select("full_name, role, active")
     .eq("id", user.id)
     .single();
-  console.log("layout profile:", me, error);
+
   if (!me?.active) {
     await sb.auth.signOut();
     redirect("/login");
   }
+
   const staff = me.role !== "broker";
   const links: [string, string][] = [
     ["/admin", "Dashboard"],
@@ -31,6 +34,7 @@ export default async function AdminLayout({
       ? ([["/admin/site", "Editar meu site"]] as [string, string][])
       : []),
   ];
+
   return (
     <div className="shell">
       <aside className="side">
@@ -41,7 +45,7 @@ export default async function AdminLayout({
           </Link>
         ))}
         <form action={signOut} className="out">
-          <button style={{ width: "100%" }}>Sair ({me.full_name})</button>
+          <button style={{ inlineSize: "100%" }}>Sair ({me.full_name})</button>
         </form>
       </aside>
       <main>{children}</main>
